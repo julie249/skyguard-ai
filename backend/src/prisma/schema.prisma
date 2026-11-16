@@ -1,0 +1,55 @@
+// Prisma schema for SkyGuard AI
+// SQLite for fast, robust zero-dependency development/demo runs; easily points to PostgreSQL via env
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Station {
+  stationId  String    @id
+  name       String
+  lat        Float
+  lon        Float
+  elevation  Float
+  region     String
+  readings   Reading[]
+  alerts     Alert[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Reading {
+  id           String   @id @default(uuid())
+  stationId    String
+  station      Station  @relation(fields: [stationId], references: [stationId])
+  timestamp    DateTime
+  temperatureC Float
+  pressureHpa  Float
+  humidityPct  Float
+  createdAt    DateTime @default(now())
+
+  @@index([stationId, timestamp])
+}
+
+model Alert {
+  alertId             String   @id @default(uuid())
+  stationId           String
+  station             Station  @relation(fields: [stationId], references: [stationId])
+  timestamp           DateTime
+  detectedAt          DateTime @default(now())
+  confidence          Float
+  rootCause           String   // sensor_fault, comms_error, genuine_extreme, unknown
+  triggeringFeatures  String   // JSON stringified array of string
+  explanation         String   // JSON stringified { feature_contributions: {...}, summary: string }
+  spatialSupport      String?  // JSON stringified { neighbors: [...], agreement_score: number }
+  suggestedCorrection Float?
+  status              String   @default("open") // open, acknowledged, resolved
+
+  @@index([stationId, timestamp])
+  @@index([status])
+}
