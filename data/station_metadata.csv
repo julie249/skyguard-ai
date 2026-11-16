@@ -1,0 +1,7 @@
+station_id,station_name,latitude,longitude,elevation_m,region
+AWS001,New Delhi Ridge,28.6139,77.2090,216.0,North India
+AWS002,Palam Airport,28.5665,77.1031,237.0,North India
+AWS003,Noida Sector 62,28.6280,77.3649,200.0,North India
+AWS004,Gurugram CyberCity,28.4949,77.0895,225.0,North India
+AWS005,Faridabad Central,28.4089,77.3178,206.0,North India
+AWS006,Ghaziabad Hindon,28.7032,77.4378,212.0,North India
