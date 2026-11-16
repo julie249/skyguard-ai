@@ -50,7 +50,7 @@ class RootCauseClassifier:
         for feat in ["temperature_c", "pressure_hpa", "humidity_pct"]:
             val = reading.get(feat)
             if val is None:
-                return "comms_error"
+                continue
             if feat == "temperature_c" and val <= -90.0:
                 return "comms_error"
             if feat == "pressure_hpa" and val <= 100.0:
