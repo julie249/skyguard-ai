@@ -5,6 +5,7 @@ import { useLiveStream } from '../hooks/useLiveStream';
 import { StationMap } from '../components/StationMap';
 import { TimeSeriesChart } from '../components/TimeSeriesChart';
 import { AlertFeed } from '../components/AlertFeed';
+import { SensorHealthCard } from '../components/SensorHealthCard';
 
 export const Dashboard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -115,6 +116,14 @@ export const Dashboard: React.FC = () => {
           <TimeSeriesChart
             readings={readings}
             stationName={activeStation ? `${activeStation.name} (${activeStation.stationId})` : selectedStationId}
+          />
+
+          <SensorHealthCard
+            stationId={selectedStationId}
+            uptimePct={99.8}
+            lastSeen="Just now"
+            anomalies24h={alerts.filter((a) => a.stationId === selectedStationId).length}
+            driftForecastScore={alerts.some((a) => a.stationId === selectedStationId && a.rootCause === 'sensor_fault') ? 0.65 : 0.15}
           />
         </div>
 
