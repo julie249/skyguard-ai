@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     model_store_dir: str = "models_store"
+    # Set to False to skip the LSTM model on low-RAM hosts (Render free tier < 512 MB)
+    enable_lstm: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",

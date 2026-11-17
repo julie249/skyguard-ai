@@ -12,9 +12,10 @@ export function useLiveStream(stationId?: string) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:3000/ws/stream';
     const wsUrl = stationId
-      ? `ws://localhost:3000/ws/stream?stationId=${stationId}`
-      : `ws://localhost:3000/ws/stream`;
+      ? `${WS_BASE}?stationId=${stationId}`
+      : WS_BASE;
 
     let ws: WebSocket | null = null;
     let reconnectTimeout: any = null;
