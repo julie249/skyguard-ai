@@ -13,7 +13,7 @@ export async function stationRoutes(server: FastifyInstance) {
       },
     });
 
-    const stationsWithHealth = stations.map((st) => {
+    const stationsWithHealth = stations.map((st: any) => {
       const hasActiveAlert = st.alerts.length > 0;
       return {
         stationId: st.stationId,

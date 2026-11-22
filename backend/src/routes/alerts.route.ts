@@ -18,7 +18,7 @@ export async function alertRoutes(server: FastifyInstance) {
       include: { station: true },
     });
 
-    const parsedAlerts = alerts.map((a) => ({
+    const parsedAlerts = alerts.map((a: any) => ({
       ...a,
       triggeringFeatures: JSON.parse(a.triggeringFeatures),
       explanation: JSON.parse(a.explanation),
