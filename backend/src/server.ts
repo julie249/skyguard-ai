@@ -17,9 +17,12 @@ export async function buildServer() {
     logger: config.nodeEnv === 'development',
   });
 
-  // CORS
+  // CORS — reads CORS_ORIGIN env var; use '*' locally, deployed frontend URL in prod
+  const allowedOrigins = config.corsOrigin === '*'
+    ? true
+    : config.corsOrigin.split(',').map((o) => o.trim());
   await server.register(cors, {
-    origin: '*',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   });
 

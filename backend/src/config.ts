@@ -7,6 +7,8 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
   mlServiceUrl: process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000',
+  // Comma-separated allowed origins; use '*' in dev, deployed frontend URL in prod
+  corsOrigin: process.env.CORS_ORIGIN || '*',
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN || '',
     chatId: process.env.TELEGRAM_CHAT_ID || '',
