@@ -22,7 +22,7 @@ export const Dashboard: React.FC = () => {
   });
 
   // WebSocket live updates
-  const { latestMessage, isConnected } = useLiveStream(selectedStationId);
+  const { latestMessage, isConnected, mlOffline } = useLiveStream(selectedStationId);
 
   // React to incoming live WebSocket events
   React.useEffect(() => {
@@ -59,6 +59,23 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '24px', fontFamily: 'sans-serif' }}>
+      {/* ML Offline Banner */}
+      {mlOffline && (
+        <div style={{
+          background: '#7c2d12',
+          border: '1px solid #c2410c',
+          borderRadius: '6px',
+          padding: '10px 16px',
+          marginBottom: '16px',
+          color: '#fed7aa',
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}>
+          ⚠️ <strong>ML service offline — readings are being saved but are unscored. No anomaly alerts will fire until ML service restarts.</strong>
+        </div>
+      )}
       {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
