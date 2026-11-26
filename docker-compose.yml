@@ -1,36 +1,30 @@
-version: '3.8'
+# docker-compose.yml — SkyGuard AI full stack (SQLite mode, no external DB)
+# Usage: docker compose up --build
+# For production Postgres, replace DATABASE_URL and uncomment the db service.
+version: '3.9'
 
 services:
-  db:
-    image: timescale/timescaledb:latest-pg16
-    container_name: skyguard-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: skyguard
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   ml-service:
     build:
       context: ./ml-service
       dockerfile: Dockerfile
-    container_name: skyguard-ml-service
+    container_name: skyguard-ml
     ports:
       - "8000:8000"
     environment:
       - ML_HOST=0.0.0.0
       - ML_PORT=8000
       - ENVIRONMENT=production
+      - ENABLE_LSTM=false   # set to true once you have GPU / enough RAM
     volumes:
       - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
 
   backend:
     build:
@@ -43,23 +37,44 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/skyguard
+      # SQLite stored in a named volume so data survives container restarts
+      - DATABASE_URL=file:/app/data/skyguard.db
       - ML_SERVICE_URL=http://ml-service:8000
+      # Set to your deployed frontend URL in production, e.g.:
+      # - CORS_ORIGIN=https://skyguard-ai.vercel.app
+      - CORS_ORIGIN=*
+    volumes:
+      - backend_data:/app/data
     depends_on:
-      db:
-        condition: service_healthy
       ml-service:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/metrics"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # These are baked into the JS bundle at build time
+        VITE_API_URL: http://localhost:3000
+        VITE_WS_URL: ws://localhost:3000
     container_name: skyguard-frontend
     ports:
       - "5173:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 15s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
 volumes:
-  pgdata:
+  backend_data:
