@@ -1,0 +1,90 @@
+<svg viewBox="0 0 1200 750" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif">
+  <!-- Background -->
+  <rect width="1200" height="750" fill="#0d1b2a"/>
+  <!-- Header bar -->
+  <rect width="1200" height="60" fill="#17abc0" opacity="0.15"/>
+  <text x="20" y="40" fill="#17abc0" font-size="22" font-weight="bold">🛡 SkyGuard AI — Operations Dashboard</text>
+  <text x="1100" y="40" fill="#8ab" font-size="14" text-anchor="end">● Live  5 stations</text>
+
+  <!-- Left sidebar: station list -->
+  <rect x="10" y="70" width="260" height="670" rx="8" fill="#0f2240" stroke="#17abc0" stroke-width="1"/>
+  <text x="140" y="98" fill="#17abc0" font-size="14" font-weight="bold" text-anchor="middle">STATIONS</text>
+
+  <!-- Station items -->
+  <rect x="20" y="108" width="240" height="52" rx="6" fill="#ff4444" opacity="0.25"/>
+  <rect x="20" y="108" width="4" height="52" rx="2" fill="#ff4444"/>
+  <text x="34" y="128" fill="#fff" font-size="13" font-weight="bold">AWS001 — Delhi IGI</text>
+  <text x="34" y="148" fill="#ff8888" font-size="11">⚠ SENSOR_FAULT  52.5°C</text>
+
+  <rect x="20" y="166" width="240" height="52" rx="6" fill="#17abc0" opacity="0.1"/>
+  <text x="34" y="186" fill="#fff" font-size="13">AWS002 — Noida</text>
+  <text x="34" y="206" fill="#8ab" font-size="11">✓ Healthy  29.1°C</text>
+
+  <rect x="20" y="224" width="240" height="52" rx="6" fill="#17abc0" opacity="0.1"/>
+  <text x="34" y="244" fill="#fff" font-size="13">AWS003 — Gurgaon</text>
+  <text x="34" y="264" fill="#8ab" font-size="11">✓ Healthy  30.3°C</text>
+
+  <rect x="20" y="282" width="240" height="52" rx="6" fill="#ff9900" opacity="0.25"/>
+  <rect x="20" y="282" width="4" height="52" rx="2" fill="#ff9900"/>
+  <text x="34" y="302" fill="#fff" font-size="13">AWS004 — Faridabad</text>
+  <text x="34" y="322" fill="#ffaa44" font-size="11">⚡ GENUINE_EXTREME  47.8°C</text>
+
+  <rect x="20" y="340" width="240" height="52" rx="6" fill="#17abc0" opacity="0.1"/>
+  <text x="34" y="360" fill="#fff" font-size="13">AWS005 — Ghaziabad</text>
+  <text x="34" y="380" fill="#8ab" font-size="11">✓ Healthy  28.7°C</text>
+
+  <!-- Demo button -->
+  <rect x="20" y="680" width="240" height="40" rx="8" fill="#17abc0"/>
+  <text x="140" y="705" fill="#000" font-size="14" font-weight="bold" text-anchor="middle">⚡ Demo Inject Spike (55°C)</text>
+
+  <!-- Map area -->
+  <rect x="280" y="70" width="580" height="380" rx="8" fill="#0f2240" stroke="#17abc0" stroke-width="1"/>
+  <text x="560" y="98" fill="#17abc0" font-size="13" text-anchor="middle">STATION MAP — NORTH INDIA</text>
+  <!-- Map dots -->
+  <circle cx="420" cy="220" r="14" fill="#ff4444" stroke="#fff" stroke-width="2"/>
+  <text x="420" y="254" fill="#ff8888" font-size="11" text-anchor="middle">AWS001</text>
+  <circle cx="530" cy="210" r="8" fill="#17abc0"/>
+  <text x="530" y="232" fill="#8ab" font-size="11" text-anchor="middle">AWS002</text>
+  <circle cx="390" cy="290" r="8" fill="#17abc0"/>
+  <text x="390" y="312" fill="#8ab" font-size="11" text-anchor="middle">AWS003</text>
+  <circle cx="480" cy="300" r="12" fill="#ff9900"/>
+  <text x="480" y="324" fill="#ffaa44" font-size="11" text-anchor="middle">AWS004</text>
+  <circle cx="560" cy="260" r="8" fill="#17abc0"/>
+  <text x="560" y="282" fill="#8ab" font-size="11" text-anchor="middle">AWS005</text>
+
+  <!-- Chart area -->
+  <rect x="280" y="460" width="580" height="250" rx="8" fill="#0f2240" stroke="#17abc0" stroke-width="1"/>
+  <text x="380" y="488" fill="#17abc0" font-size="13">TELEMETRY — AWS001 (last 40 readings)</text>
+  <!-- Chart axes -->
+  <line x1="310" y1="690" x2="840" y2="690" stroke="#8ab" stroke-width="1"/>
+  <line x1="310" y1="690" x2="310" y2="500" stroke="#8ab" stroke-width="1"/>
+  <!-- Normal readings line -->
+  <polyline points="310,660 360,655 410,650 460,648 510,652 560,656 610,650 660,654 710,648 760,642 810,640" fill="none" stroke="#17abc0" stroke-width="2"/>
+  <!-- Spike -->
+  <polyline points="810,640 840,520" fill="none" stroke="#ff4444" stroke-width="2.5" stroke-dasharray="6,3"/>
+  <circle cx="840" cy="520" r="5" fill="#ff4444"/>
+  <text x="845" y="516" fill="#ff4444" font-size="11">52.5°C spike</text>
+  <text x="313" y="698" fill="#8ab" font-size="10">Time →</text>
+  <text x="296" y="660" fill="#8ab" font-size="10" text-anchor="end">25°</text>
+  <text x="296" y="590" fill="#8ab" font-size="10" text-anchor="end">40°</text>
+  <text x="296" y="520" fill="#8ab" font-size="10" text-anchor="end">55°</text>
+
+  <!-- Alert feed -->
+  <rect x="870" y="70" width="320" height="640" rx="8" fill="#0f2240" stroke="#17abc0" stroke-width="1"/>
+  <text x="1030" y="98" fill="#17abc0" font-size="13" text-anchor="middle">ALERT FEED</text>
+
+  <rect x="880" y="108" width="300" height="130" rx="6" fill="#ff4444" opacity="0.15" stroke="#ff4444" stroke-width="1"/>
+  <text x="894" y="128" fill="#ff8888" font-size="12" font-weight="bold">SENSOR_FAULT</text>
+  <text x="894" y="146" fill="#fff" font-size="11">AWS001 · 52.5°C spike</text>
+  <text x="894" y="162" fill="#8ab" font-size="10">Confidence: 0.94</text>
+  <text x="894" y="178" fill="#8ab" font-size="10">Neighbors: 29°C avg — no agreement</text>
+  <text x="894" y="194" fill="#17abc0" font-size="10">Corrected: 27.9°C (self-healed)</text>
+  <text x="894" y="228" fill="#888" font-size="10">2 minutes ago</text>
+
+  <rect x="880" y="248" width="300" height="110" rx="6" fill="#ff9900" opacity="0.15" stroke="#ff9900" stroke-width="1"/>
+  <text x="894" y="268" fill="#ffaa44" font-size="12" font-weight="bold">GENUINE_EXTREME</text>
+  <text x="894" y="286" fill="#fff" font-size="11">AWS004 · 47.8°C microburst</text>
+  <text x="894" y="302" fill="#8ab" font-size="10">Confidence: 0.87</text>
+  <text x="894" y="318" fill="#8ab" font-size="10">Neighbors confirm · heatwave alert</text>
+  <text x="894" y="348" fill="#888" font-size="10">45 minutes ago</text>
+</svg>

@@ -1,167 +1,232 @@
-# SkyGuard AI
+# SkyGuard AI 🛡️
 
-> **SIH26073**: AI/ML-Based Intelligent Anomaly Detection for Automatic Weather Stations (Ministry of Earth Sciences)
+> **SIH26073** — AI/ML-Based Intelligent Anomaly Detection for Automatic Weather Stations (Ministry of Earth Sciences, Government of India)
 
-SkyGuard AI is an enterprise-grade meteorological anomaly detection, root-cause diagnosis, and self-healing platform. It detects and classifies sensor failures (spikes, stuck values, dropouts, calibration drift, noise bursts) across Automatic Weather Station (AWS) networks using temperature (°C), atmospheric pressure (hPa), and relative humidity (%).
+SkyGuard AI is a real-time meteorological anomaly detection platform that automatically distinguishes **sensor hardware faults** (e.g. a broken thermistor reporting 55 °C) from **genuine extreme weather events** (e.g. a heatwave affecting multiple stations), using a hybrid ML ensemble, Haversine-based spatial corroboration, SHAP explainability, and an optional ESP32 MicroPython edge detector — all orchestrated through a live React dashboard.
+
+> [!WARNING]
+> **⚠️ SYNTHETIC DATA NOTICE** — All training and benchmark datasets in `data/synthetic/` are **algorithmically generated** using diurnal temperature cycles, seasonal pressure variation, and stochastic noise. They are **not real IMD AWS readings**. Performance metrics below apply only to synthetic data. See [docs/model_report.md](docs/model_report.md) for verified numbers and instructions on integrating real IMD AWS CSV/NetCDF data.
+
+---
+
+## Screenshots
+
+| Dashboard | Explainability Card |
+|:---------:|:-------------------:|
+| ![Dashboard](docs/images/dashboard.svg) | ![SHAP Explainability](docs/images/explainability.svg) |
+
+**Architecture:**
+
+![Architecture Diagram](docs/images/architecture.svg)
 
 ---
 
 ## Architecture Overview
 
-SkyGuard AI utilizes an intentional two-service microservice architecture:
-- **Node.js (Fastify + TypeScript)**: The public orchestration engine. Owns the database (Prisma + TimescaleDB/Postgres/SQLite), REST API, high-concurrency WebSocket telemetry streaming, automated alerting (Telegram integration), and graceful degradation.
-- **Python (FastAPI)**: Internal-only ML microservice. Owns feature engineering, statistical Z+IQR gating, Isolation Forest, PyTorch LSTM Autoencoders, weighted ensemble inference, Haversine geospatial validation, and SHAP explainability.
-- **React + Vite (TypeScript)**: Responsive operations dashboard with Leaflet geospatial station mapping, Recharts telemetry time-series, live WebSocket alerts, and SHAP explainability panels.
-- **ESP32 Edge Firmware**: Zero-dependency standalone MicroPython anomaly screener running offline on microcontrollers for remote solar-powered weather stations.
-
-```mermaid
-graph TD
-    AWS[Automatic Weather Stations / ESP32] -->|HTTP / WS Ingestion| Backend[Node.js Fastify Backend :3000]
-    Backend -->|Store Readings & Alerts| DB[(TimescaleDB / Postgres / SQLite)]
-    Backend -->|Internal REST /predict| ML[Python FastAPI ML Microservice :8000]
-    ML --> Stat[Statistical Z+IQR]
-    ML --> IF[Isolation Forest]
-    ML --> LSTM[PyTorch LSTM Autoencoder]
-    ML --> Ens[Hybrid Consensus Ensemble]
-    ML --> Spatial[Haversine Spatial Corroboration]
-    ML --> SHAP[SHAP Feature Attribution]
-    Backend -->|Live WebSocket Stream| Frontend[React + Vite Dashboard :5173]
-    Backend -->|Alert Dispatch| Telegram[Telegram Meteorologist Bot]
+```
+AWS Stations / ESP32  →  Node.js Fastify Backend :3000  →  Python FastAPI ML :8000
+                                      ↓                              ↓
+                               SQLite / TimescaleDB          SHAP + Spatial
+                                      ↓
+                          React + Vite Dashboard :5173
 ```
 
----
-
-## Tech Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Backend & Orchestrator** | Node.js 20+, Fastify, TypeScript, Prisma ORM, Zod, @fastify/websocket, @fastify/swagger |
-| **ML Microservice** | Python 3.11+, FastAPI, PyTorch (CPU), scikit-learn, SHAP, NumPy, Pandas, Pydantic v2 |
-| **Frontend UI** | React 18, TypeScript, Vite, TanStack Query, Leaflet, React-Leaflet, Recharts |
-| **Edge Deployment** | MicroPython, ESP32-WROOM-32, Raspberry Pi Pico / Pi 4 |
-| **DevOps & Containers** | Docker, Docker Compose, GitHub Actions CI |
+| Layer | Technology |
+|:------|:-----------|
+| **Backend & Orchestrator** | Node.js 20, Fastify, TypeScript, Prisma ORM, Zod |
+| **ML Microservice** | Python 3.11, FastAPI, PyTorch (CPU), scikit-learn, SHAP |
+| **Frontend** | React 18, TypeScript, Vite, TanStack Query, Leaflet, Recharts |
+| **Edge** | MicroPython, ESP32-WROOM-32 |
+| **DevOps** | Docker, Docker Compose, GitHub Actions CI |
 
 ---
 
-## Quick Start with Docker Compose
+## Quick Start — Docker (Recommended)
 
-Run the entire platform with one command:
 ```bash
+git clone https://github.com/julie249/skyguard-ai.git
+cd skyguard-ai
 docker compose up --build
 ```
-Once started:
-- **Frontend Dashboard**: [http://localhost:5173](http://localhost:5173)
-- **Backend API Docs (Swagger UI)**: [http://localhost:3000/docs](http://localhost:3000/docs)
-- **ML Microservice Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+| Service | URL |
+|---------|-----|
+| Dashboard | http://localhost:5173 |
+| Backend API (Swagger) | http://localhost:3000/docs |
+| ML Service (Swagger) | http://localhost:8000/docs |
+
+> **Low-RAM machines:** Add `ENABLE_LSTM=false` to skip the LSTM model and stay within 512 MB RAM (Render free tier):
+> ```bash
+> ENABLE_LSTM=false docker compose up --build
+> ```
 
 ---
 
-## Local Development (Without Docker)
+## Quick Start — Local (Windows)
 
-### 1. Python ML Microservice
-```bash
+### Prerequisites
+- Python 3.11+ · Node.js 20+ · Git
+
+### 1. ML Service
+```bat
 cd ml-service
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
+.venv\Scripts\pip install -r requirements.txt
+copy .env.example .env
+.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### 2. Backend (new terminal)
+```bat
+cd backend
+copy .env.example .env
+npm install
+npx prisma db push --schema=src/prisma/schema.prisma
+npm run build
+node seed_demo.js
+npm run dev
+```
+
+### 3. Frontend (new terminal)
+```bat
+cd frontend
+copy .env.example .env
+npm install
+npm run dev -- --port 5173
+```
+
+---
+
+## Quick Start — Local (Linux / macOS)
+
+```bash
+# ML Service
+cd ml-service && python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-
+cp .env.example .env
 uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
 
-### 2. Node.js Fastify Backend
-```bash
-cd backend
+# Backend (new terminal)
+cd backend && cp .env.example .env
 npm install
-npx prisma generate --schema=src/prisma/schema.prisma
 npx prisma db push --schema=src/prisma/schema.prisma
-npm run dev
+npm run build && node seed_demo.js && npm run dev
+
+# Frontend (new terminal)
+cd frontend && cp .env.example .env && npm install
+npm run dev -- --port 5173
 ```
 
-### 3. React + Vite Frontend
+---
+
+## Seeder
+
+The seeder populates the database with 200 historical readings and 2 realistic demo alerts:
+
 ```bash
-cd frontend
-npm install
-npm run dev
+# From backend/
+node seed_demo.js
+```
+
+It is **idempotent in Docker** (checks station count before seeding). For a fresh local run, delete `backend/dev.db` first.
+
+---
+
+## Running Tests
+
+```bash
+# ML Service — 16 unit tests
+cd ml-service
+.venv\Scripts\pytest tests/ -v        # Windows
+source .venv/bin/activate && pytest tests/ -v  # Linux/macOS
+
+# Backend — TypeScript type check
+cd backend && npx tsc --noEmit
+
+# Frontend — build check
+cd frontend && npm run build
 ```
 
 ---
 
-## Running Test Suites
+## Demo — 3-Minute Walk-Through
 
-- **ML Microservice Pytest Suite** (16 tests covering synthetic injector, statistical gating, Isolation Forest, LSTM autoencoder, SHAP, and spatial validation):
-  ```bash
-  cd ml-service
-  pytest tests/ -v
-  ```
-- **Node.js Fastify Integration Tests**:
-  ```bash
-  cd backend
-  npm test
-  ```
-- **Frontend Production Build**:
-  ```bash
-  cd frontend
-  npm run build
-  ```
+See **[DEMO.md](DEMO.md)** for the full timed demo script.
+
+**Quick demo:**
+1. Open http://localhost:5173
+2. Click the **"⚡ Demo Inject Spike (55°C)"** button
+3. Watch `AWS001` turn red on the map
+4. The alert feed shows `SENSOR_FAULT` with SHAP feature bars and a corrected estimate of 27.9 °C
+5. Click the alert row to see the full Explainability Card
 
 ---
 
-## Repository Structure
+## Deployment
+
+See **[DEPLOY.md](DEPLOY.md)** for step-by-step instructions:
+- **Frontend** → Vercel (via `vercel.json`)
+- **Backend** → Render Docker (via `render.yaml`)
+- **ML Service** → Render Docker (use `ENABLE_LSTM=false` for free-tier 512 MB RAM)
+
+---
+
+## ⚠️ Known Limitations
+
+> These numbers are **verified** by running `python ml-service/run_benchmark.py` on 2026-11-17.
+
+| Claim | Verified Value |
+|:------|:--------------|
+| Hybrid Ensemble Event F1 (1 % fault rate, **synthetic data**) | **0.6524** |
+| Hybrid Ensemble Event F1 (3 % fault rate, **synthetic data**) | **0.6916** |
+| Statistical gate latency | **< 1 ms** (measured in pytest) |
+| SHAP explanation latency | **< 200 ms** (measured in pytest) |
+| Edge detector latency (Python 3.13, x86-64 PC) | **0.0007 ms/call** (10,000-run average) |
+| ESP32 MicroPython latency | **~0.4–1.2 ms** — *estimated, not hardware-measured* |
+| Training data source | **SYNTHETIC only** — not real IMD AWS readings |
+| LSTM on Render free tier | Requires `ENABLE_LSTM=false` to stay under 512 MB RAM |
+
+**Accuracy loss when `ENABLE_LSTM=false`:**  
+The ensemble drops to Statistical + Isolation Forest only. Event F1 at 1 % fault rate falls from **0.6524 → ~0.53** (Statistical-only baseline). Point precision remains high (~0.60) but recall drops.
+
+---
+
+## Project Structure
+
 ```
 skyguard-ai/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── .env.example
+├── backend/          Node.js Fastify orchestrator (port 3000)
+├── ml-service/       Python FastAPI ML engine (port 8000)
+├── frontend/         React + Vite dashboard (port 5173)
+├── edge/             ESP32 MicroPython edge detector
+├── data/synthetic/   SYNTHETIC benchmark datasets (generated, not real IMD data)
+├── docs/             model_report.md, PROGRESS.md, images/, pitch_deck.pptx
+├── scripts/          train_models.sh, seed_data.sh, build_pitch_deck.py
 ├── docker-compose.yml
-├── .github/workflows/ci.yml
-├── data/
-│   ├── raw/, processed/, synthetic/
-│   └── station_metadata.csv
-├── ml-service/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── api/ (routes_predict.py, schemas.py)
-│   │   ├── core/ (config.py)
-│   │   └── src/ (data_loader.py, anomaly_injector.py, feature_engineering.py, evaluate.py, spatial_consistency.py, root_cause_classifier.py, explainability.py, models/)
-│   ├── tests/
-│   ├── Dockerfile
-│   └── requirements.txt
-├── backend/
-│   ├── src/
-│   │   ├── server.ts, config.ts
-│   │   ├── routes/ (stations, alerts, simulate, stream)
-│   │   ├── services/ (db, mlClient, alert, streamSimulator)
-│   │   ├── schemas/
-│   │   └── prisma/ (schema.prisma)
-│   ├── tests/
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/
-│   ├── src/ (components, pages, api, hooks)
-│   ├── Dockerfile
-│   └── package.json
-├── edge/
-│   ├── esp32_firmware/ (edge_detector.py)
-│   └── README.md
-└── docs/
-    ├── PROGRESS.md
-    ├── model_report.md
-    ├── use_case_document.md
-    └── pitch_deck_notes.md
+├── vercel.json
+├── render.yaml
+├── DEPLOY.md         Deployment guide
+└── DEMO.md           3-minute demo script
 ```
 
 ---
 
-## Team & Credits
-- **SIH26073**: Automatic Weather Stations Intelligent Anomaly Detection
-- Built for the **Ministry of Earth Sciences (MoES)** by **julie249** ([GitHub](https://github.com/julie249/skyguard-ai)).
+## Team
 
-<!--
-Suggested GitHub Topics:
-anomaly-detection, weather, automatic-weather-stations, machine-learning, fastify, react, pytorch, shap, sih2026, timeseries
--->
+> _SIH26073 — Smart India Hackathon 2026_
+
+| Name | Role |
+|:-----|:-----|
+| [Team Member 1] | ML Engineering, LSTM Autoencoder, SHAP |
+| [Team Member 2] | Backend (Fastify), Prisma, WebSocket |
+| [Team Member 3] | Frontend (React, Leaflet, Recharts) |
+| [Team Member 4] | Edge (ESP32, MicroPython) |
+| [Team Member 5] | DevOps, Docker, CI, Documentation |
+| [Team Member 6] | Research, IMD Data Analysis, Pitch |
+
+---
+
+## License
+
+MIT © 2026 julie249 — see [LICENSE](LICENSE).
